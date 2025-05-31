@@ -4,7 +4,7 @@
 │      PasswordUtil.java            # 提供密码加密、解密或验证的工具方法（如哈希加密、盐值生成等）。  
 │  
 ├─controller  
-│      AuthController.java          # 处理用户认证相关的请求（如登录、登出、权限校验），通常调用 service 层的方法。  
+│      AuthController.java          # 处理用户认证相关的请求（如登录、登出、权限校验），通常调用 service 层的方法。（但仍需修改）  
 │  
 ├─dao  
 │      OwnerDAO.java                # 操作与“业主”（Owner）相关的数据库表（如 CRUD 操作）。  
@@ -32,3 +32,5 @@ dao：操作数据库。
 domain：定义数据模型。  
 配置与工具：config 包提供全局配置和工具类支持。  
 扩展性：vo 包用于数据传输，便于前后端交互或微服务间通信。  
+注：  
+AuthController.java类仍需前后端交互人员修改
