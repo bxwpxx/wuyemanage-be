@@ -1,6 +1,6 @@
 \SERVER\SRC\MAIN\JAVA\COM  
 ├─config  
-│      DatabaseConnectionPool.java  # 管理数据库连接池的配置和生命周期，提供高效的数据库连接复用。  
+│      DatabaseConnectionPool.java  # 管理数据库连接池的配置和生命周期，提供高效的数据库连接复用（密码需改成自己数据库的）。  
 │      PasswordUtil.java            # 提供密码加密、解密或验证的工具方法（如哈希加密、盐值生成等）。  
 │  
 ├─controller  
@@ -33,4 +33,5 @@ domain：定义数据模型。
 配置与工具：config 包提供全局配置和工具类支持。  
 扩展性：vo 包用于数据传输，便于前后端交互或微服务间通信。  
 注：  
-AuthController.java类仍需前后端交互人员修改
+AuthController.java类仍需前后端交互人员修改  
+DatabaseConnectionPool.java类的密码需要修改
