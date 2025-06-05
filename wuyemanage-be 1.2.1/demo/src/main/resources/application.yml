@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/PropertyManagement?useSSL=false&serverTimezone=UTC
+    username: root
+    password: "123456"
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      max-lifetime: 1800000
+      pool-name: PropertyManagementPool
+      connection-test-query: SELECT 1  # 连接健康检查
+
+server:
+  port: 8085
