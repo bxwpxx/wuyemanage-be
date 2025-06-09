@@ -1,5 +1,5 @@
 USE PropertyManagement;
-CREATE TABLE repair_requests (
+CREATE TABLE repair (
     id INT PRIMARY KEY AUTO_INCREMENT,
     description TEXT NOT NULL,
     image_path VARCHAR(255),
