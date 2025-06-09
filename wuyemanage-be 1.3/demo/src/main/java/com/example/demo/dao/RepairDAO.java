@@ -8,6 +8,7 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
 @Repository
 public class RepairDAO {
     private final Connection connection;
@@ -22,12 +23,12 @@ public class RepairDAO {
 
     // 创建报修记录
     public int create(Repair request) throws SQLException {
-        String sql = "INSERT INTO repair (description, image_path, location_type, specific_location, " +
+        String sql = "INSERT INTO repair (description, image, location_type, specific_location, " +
                 "creator_id) VALUES (?, ?, ?, ?, ?)";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, request.getDescription());
-            stmt.setString(2, request.getImagePath());
+            stmt.setBytes(2, request.getImage()); // 修改为setBytes处理二进制数据
             stmt.setString(3, request.getLocationType().toString());
             stmt.setString(4, request.getSpecificLocation());
             stmt.setInt(5, request.getCreatorId());
@@ -56,7 +57,7 @@ public class RepairDAO {
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return mapResultSetToRepairRequest(rs);
+                    return mapResultSetToRepair(rs);
                 }
                 return null;
             }
@@ -65,13 +66,13 @@ public class RepairDAO {
 
     // 更新报修记录
     public boolean update(Repair request) throws SQLException {
-        String sql = "UPDATE repair SET description = ?, image_path = ?, location_type = ?, " +
+        String sql = "UPDATE repair SET description = ?, image = ?, location_type = ?, " +
                 "specific_location = ?, status = ?, handler_id = ?, handled_at = ?, " +
                 "rating = ?, rated_at = ? WHERE id = ?";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, request.getDescription());
-            stmt.setString(2, request.getImagePath());
+            stmt.setBytes(2, request.getImage()); // 修改为setBytes处理二进制数据
             stmt.setString(3, request.getLocationType().toString());
             stmt.setString(4, request.getSpecificLocation());
             stmt.setString(5, request.getStatus().toString());
@@ -96,103 +97,103 @@ public class RepairDAO {
     }
 
     // 查询所有报修记录
-    public List<Repair> getAllRepairRequests() throws SQLException {
+    public List<Repair> getAllRepairs() throws SQLException {
         String sql = "SELECT * FROM repair ORDER BY created_at DESC";
-        List<Repair> requests = new ArrayList<>();
+        List<Repair> repairs = new ArrayList<>();
 
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
-                requests.add(mapResultSetToRepairRequest(rs));
+                repairs.add(mapResultSetToRepair(rs));
             }
         }
-        return requests;
+        return repairs;
     }
 
     // 根据状态查询报修记录
     public List<Repair> findByStatus(Repair.Status status) throws SQLException {
         String sql = "SELECT * FROM repair WHERE status = ? ORDER BY created_at DESC";
-        List<Repair> requests = new ArrayList<>();
+        List<Repair> repairs = new ArrayList<>();
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, status.toString());
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    requests.add(mapResultSetToRepairRequest(rs));
+                    repairs.add(mapResultSetToRepair(rs));
                 }
             }
         }
-        return requests;
+        return repairs;
     }
 
     // 根据创建人ID查询报修记录
     public List<Repair> findByCreatorId(int creatorId) throws SQLException {
         String sql = "SELECT * FROM repair WHERE creator_id = ? ORDER BY created_at DESC";
-        List<Repair> requests = new ArrayList<>();
+        List<Repair> repairs = new ArrayList<>();
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, creatorId);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    requests.add(mapResultSetToRepairRequest(rs));
+                    repairs.add(mapResultSetToRepair(rs));
                 }
             }
         }
-        return requests;
+        return repairs;
     }
 
     // 根据处理人ID查询报修记录
     public List<Repair> findByHandlerId(int handlerId) throws SQLException {
-        String sql = "SELECT * FROM repair WHERE handler_id = ? DESC";
-        List<Repair> requests = new ArrayList<>();
+        String sql = "SELECT * FROM repair WHERE handler_id = ? ORDER BY created_at DESC"; // 添加了排序
+        List<Repair> repairs = new ArrayList<>();
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, handlerId);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    requests.add(mapResultSetToRepairRequest(rs));
+                    repairs.add(mapResultSetToRepair(rs));
                 }
             }
         }
-        return requests;
+        return repairs;
     }
 
-    // 将ResultSet映射为RepairRequest对象
-    private Repair mapResultSetToRepairRequest(ResultSet rs) throws SQLException {
-        Repair request = new Repair();
-        request.setId(rs.getInt("id"));
-        request.setDescription(rs.getString("description"));
-        request.setImagePath(rs.getString("image_path"));
-        request.setLocationType(Repair.LocationType.fromValue(rs.getString("location_type")));
-        request.setSpecificLocation(rs.getString("specific_location"));
-        request.setCreatorId(rs.getInt("creator_id"));
-        request.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
-        request.setStatus(Repair.Status.fromValue(rs.getString("status")));
+    // 将ResultSet映射为Repair对象
+    private Repair mapResultSetToRepair(ResultSet rs) throws SQLException {
+        Repair repair = new Repair();
+        repair.setId(rs.getInt("id"));
+        repair.setDescription(rs.getString("description"));
+        repair.setImage(rs.getBytes("image")); // 修改为getBytes获取二进制数据
+        repair.setLocationType(Repair.LocationType.fromValue(rs.getString("location_type")));
+        repair.setSpecificLocation(rs.getString("specific_location"));
+        repair.setCreatorId(rs.getInt("creator_id"));
+        repair.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+        repair.setStatus(Repair.Status.fromValue(rs.getString("status")));
 
         int handlerId = rs.getInt("handler_id");
         if (!rs.wasNull()) {
-            request.setHandlerId(handlerId);
+            repair.setHandlerId(handlerId);
         }
 
         Timestamp handledAt = rs.getTimestamp("handled_at");
         if (handledAt != null) {
-            request.setHandledAt(handledAt.toLocalDateTime());
+            repair.setHandledAt(handledAt.toLocalDateTime());
         }
 
         int rating = rs.getInt("rating");
         if (!rs.wasNull()) {
-            request.setRating(rating);
+            repair.setRating(rating);
         }
 
         Timestamp ratedAt = rs.getTimestamp("rated_at");
         if (ratedAt != null) {
-            request.setRatedAt(ratedAt.toLocalDateTime());
+            repair.setRatedAt(ratedAt.toLocalDateTime());
         }
 
-        return request;
+        return repair;
     }
 
     // 辅助方法：设置可为null的整数参数
@@ -223,17 +224,17 @@ public class RepairDAO {
             throw new RuntimeException("Failed to close database connection", e);
         }
     }
+
     public static void main(String[] args) {
         Connection connection = null;
         try {
             connection = DatabaseConnectionPool.getConnection();
             RepairDAO repairDAO = new RepairDAO();
-            // 测试获取所有公告
-            List<Repair> repairRequests = repairDAO.findByCreatorId(1);
-            for (Repair repair : repairRequests) {
+            // 测试获取所有报修记录
+            List<Repair> repairs = repairDAO.getAllRepairs();
+            for (Repair repair : repairs) {
                 System.out.println(repair);
             }
-
         } catch (SQLException e) {
             System.err.println("数据库操作失败: " + e.getMessage());
         } finally {
@@ -247,5 +248,4 @@ public class RepairDAO {
             DatabaseConnectionPool.closePool();
         }
     }
-
 }

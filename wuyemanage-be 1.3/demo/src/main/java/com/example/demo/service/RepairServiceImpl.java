@@ -1,14 +1,17 @@
 package com.example.demo.service;
 
+import com.example.demo.config.DatabaseConnectionPool;
+import com.example.demo.dao.OwnerDAO;
+import com.example.demo.dao.PropertyDAO;
 import com.example.demo.dao.RepairDAO;
+import com.example.demo.dao.UserDAO;
+import com.example.demo.domain.entity.Owner;
 import com.example.demo.domain.entity.Repair;
-import com.example.demo.domain.vo.CreateRepairRequest;
-import com.example.demo.domain.vo.HandRepairRequest;
-import com.example.demo.domain.vo.RateRepairRequest;
-import com.example.demo.domain.vo.RepairItem;
+import com.example.demo.domain.vo.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,13 +20,15 @@ import java.util.stream.Collectors;
 @Service
 public class RepairServiceImpl implements RepairService {
     private final RepairDAO repairDAO;
+    private final OwnerDAO ownerDAO;
 
-    public RepairServiceImpl(RepairDAO repairDAO) {
+    public RepairServiceImpl(RepairDAO repairDAO,OwnerDAO ownerDAO) {
         this.repairDAO = repairDAO;
+        this.ownerDAO=ownerDAO;
     }
 
     public List<RepairItem> getAllRepairRequests() throws SQLException {
-        return repairDAO.getAllRepairRequests().stream()
+        return repairDAO.getAllRepairs().stream()
                 .map(RepairItem::new)
                 .collect(Collectors.toList());
     }
@@ -31,6 +36,11 @@ public class RepairServiceImpl implements RepairService {
     {
         try {
             Repair repair =new Repair(createRepairRequest);
+            if(repair.getLocationType().equals(Repair.LocationType.INDOOR))
+            {
+                Owner owner =ownerDAO.getOwnerByOwnerId(repair.getCreatorId());
+                repair.setSpecificLocation(owner.getBuildingNumber()+"-"+owner.getDoorNumber());
+            }
             repairDAO.create(repair);
             return true; // 插入成功返回true
         } catch (SQLException e) {
@@ -71,6 +81,39 @@ public class RepairServiceImpl implements RepairService {
         } catch (SQLException e) {
             return false; // 插入失败返回false
         }
+    }
+    public static void main(String[] args) throws SQLException {
+        Connection connection = null;
+        RepairDAO repairDAO=null;
+        OwnerDAO ownerDAO=null;
+        try {
+
+            connection = DatabaseConnectionPool.getConnection();
+            // 创建 DAO 实例
+            repairDAO=new RepairDAO();
+            ownerDAO=new OwnerDAO();
+
+
+        } catch (SQLException e) {
+            System.err.println("数据库操作失败: " + e.getMessage());
+        }
+        RepairService repairService=new RepairServiceImpl(repairDAO,ownerDAO);
+        for (RepairItem repairItem:repairService.findRepairList(1))
+        {
+            System.out.println(repairItem);
+            System.out.println(repairService.findById(repairItem.getId()));
+        }
+
+        // 关闭连接
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                System.err.println("关闭连接失败: " + e.getMessage());
+            }
+        }
+        // 关闭连接池
+        DatabaseConnectionPool.closePool();
     }
 
 }
