@@ -26,8 +26,22 @@ public class RepairController {
         return repairService.getAllRepairRequests();
     }
     @PostMapping("/createRepair")
-    public boolean createRepair(@RequestBody CreateRepairRequest createRepairRequest) throws SQLException {
-        return repairService.createRepairRequestRequest(createRepairRequest);
+    public boolean createRepair(
+            @RequestParam("description") String description,
+            @RequestParam("locationType") Repair.LocationType locationType,
+            @RequestParam("specificLocation") String specificLocation,
+            @RequestParam("creatorId") Integer creatorId,
+            @RequestParam("image") MultipartFile imageFile) throws SQLException, IOException {
+
+        CreateRepairRequest request = new CreateRepairRequest(
+                description,
+                imageFile.getBytes(),  // 直接获取文件的字节数组
+                locationType,
+                specificLocation,
+                creatorId
+        );
+
+        return repairService.createRepairRequestRequest(request);
     }
     @PostMapping("/findRepairById")
     public Repair findRepairById(@RequestBody int Id) throws SQLException {
