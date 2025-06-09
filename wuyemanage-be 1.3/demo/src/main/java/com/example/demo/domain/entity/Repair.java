@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 public class Repair {
     private Integer id;
     private String description;
-    private String imagePath;
+    private byte[] image; // 修改为字节数组存储二进制数据
     private LocationType locationType;
     private String specificLocation;
     private Integer creatorId;
@@ -86,13 +86,14 @@ public class Repair {
     // 构造方法
     public Repair() {
     }
+
     public Repair(CreateRepairRequest createRepairRequest) {
         if (createRepairRequest == null) {
             throw new IllegalArgumentException("CreateRepairRequest cannot be null");
         }
 
         this.description = createRepairRequest.getDescription();
-        this.imagePath = createRepairRequest.getImagePath();
+        this.image = createRepairRequest.getImage(); // 修改为获取字节数组
         this.locationType = createRepairRequest.getLocationType();
         this.specificLocation = createRepairRequest.getSpecificLocation();
         this.creatorId = createRepairRequest.getCreatorId();
@@ -132,12 +133,12 @@ public class Repair {
         this.description = description;
     }
 
-    public String getImagePath() {
-        return imagePath;
+    public byte[] getImage() {
+        return image;
     }
 
-    public void setImagePath(String imagePath) {
-        this.imagePath = imagePath;
+    public void setImage(byte[] image) {
+        this.image = image;
     }
 
     public LocationType getLocationType() {
@@ -220,7 +221,7 @@ public class Repair {
         return "Repair{" +
                 "id=" + id +
                 ", description='" + description + '\'' +
-                ", imagePath='" + imagePath + '\'' +
+                ", image=" + (image != null ? "[binary data]" : "null") + // 避免直接打印二进制数据
                 ", locationType=" + locationType +
                 ", specificLocation='" + specificLocation + '\'' +
                 ", creatorId=" + creatorId +

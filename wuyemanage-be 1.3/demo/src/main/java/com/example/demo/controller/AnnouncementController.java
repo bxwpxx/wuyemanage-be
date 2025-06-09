@@ -25,7 +25,7 @@ public class AnnouncementController {
     public AnnouncementController(AnnouncementService announcementService) {
         this.announcementService = announcementService;
     }
-    @PostMapping("/getAnnouncementList")
+    @PostMapping("/getAnnouncementsList")
     public List<Announcement> getAllAnnouncements() throws SQLException {
         return announcementService.getAllAnnouncements();
     }

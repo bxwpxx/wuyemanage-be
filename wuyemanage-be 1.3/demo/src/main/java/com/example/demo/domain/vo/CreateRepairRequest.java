@@ -2,16 +2,19 @@ package com.example.demo.domain.vo;
 
 import com.example.demo.domain.entity.Repair;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
 public class CreateRepairRequest {
     private String description;
-    private String imagePath;
+    private String image;
     private Repair.LocationType locationType;
     private String specificLocation;
     private Integer creatorId;
 
-    public CreateRepairRequest(String description, String imagePath, Repair.LocationType locationType, String specificLocation, Integer creatorId) {
+    public CreateRepairRequest(String description, String image, Repair.LocationType locationType, String specificLocation, Integer creatorId) {
         this.description = description;
-        this.imagePath = imagePath;
+        this.image = image;
         this.locationType = locationType;
         this.specificLocation = specificLocation;
         this.creatorId = creatorId;
@@ -19,10 +22,6 @@ public class CreateRepairRequest {
 
     public String getDescription() {
         return description;
-    }
-
-    public String getImagePath() {
-        return imagePath;
     }
 
     public Repair.LocationType getLocationType() {
@@ -41,10 +40,14 @@ public class CreateRepairRequest {
     public String toString() {
         return "CreateRepairRequest{" +
                 "description='" + description + '\'' +
-                ", imagePath='" + imagePath + '\'' +
+                ", imagePath='" + image + '\'' +
                 ", locationType=" + locationType +
                 ", specificLocation='" + specificLocation + '\'' +
                 ", creatorId=" + creatorId +
                 '}';
+    }
+
+    public byte[] getImage() {
+        return Base64.getDecoder().decode(image);
     }
 }
