@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public class DatabaseConnectionPool {
-    private static final String URL = "jdbc:mysql://localhost:3306/PropertyManagement?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
+    private static final String URL = "jdbc:mysql://localhost:3306/PropertyManagement?useSSL=false&serverTimezone=Asia/Shanghai";
     private static final String USER = "root";
     private static final String PASSWORD = "040195sld";
 

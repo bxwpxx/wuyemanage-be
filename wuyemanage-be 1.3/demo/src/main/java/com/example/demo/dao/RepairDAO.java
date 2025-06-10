@@ -160,7 +160,143 @@ public class RepairDAO {
         }
         return repairs;
     }
+    // 在 RepairDAO 类中添加以下方法
 
+    /**
+     * 获取报修总数
+     */
+    public int getTotalRepairsCount() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM repair";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+            return 0;
+        }
+    }
+
+    /**
+     * 获取室外公共区域报修数
+     */
+    public int getPublicAreaRepairsCount() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM repair WHERE location_type = 'public_area'";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+            return 0;
+        }
+    }
+
+    /**
+     * 获取1-5号楼各楼栋的室内报修数
+     * 返回包含5个元素的List，分别对应1-5号楼的报修数
+     */
+    public List<Integer> getIndoorRepairsCountPerBuilding() throws SQLException {
+        List<Integer> counts = new ArrayList<>(5);
+        // 初始化所有楼栋计数为0
+        for (int i = 0; i < 5; i++) {
+            counts.add(0);
+        }
+
+        // 使用正则表达式提取楼号（假设地址格式为"楼号-门牌号"）
+        String sql = "SELECT " +
+                "SUM(CASE WHEN specific_location REGEXP '^1-' THEN 1 ELSE 0 END) as building1, " +
+                "SUM(CASE WHEN specific_location REGEXP '^2-' THEN 1 ELSE 0 END) as building2, " +
+                "SUM(CASE WHEN specific_location REGEXP '^3-' THEN 1 ELSE 0 END) as building3, " +
+                "SUM(CASE WHEN specific_location REGEXP '^4-' THEN 1 ELSE 0 END) as building4, " +
+                "SUM(CASE WHEN specific_location REGEXP '^5-' THEN 1 ELSE 0 END) as building5 " +
+                "FROM repair WHERE location_type = 'indoor'";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                counts.set(0, rs.getInt("building1"));
+                counts.set(1, rs.getInt("building2"));
+                counts.set(2, rs.getInt("building3"));
+                counts.set(3, rs.getInt("building4"));
+                counts.set(4, rs.getInt("building5"));
+            }
+        }
+        return counts;
+    }
+
+    /**
+     * 获取已处理的报修数
+     */
+    public int getProcessedRepairsCount() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM repair WHERE status IN ('processed', 'rated')";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+            return 0;
+        }
+    }
+
+    /**
+     * 获取平均处理时长（小时），只统计已处理的报修
+     */
+    public double getAverageProcessingHours() throws SQLException {
+        String sql = "SELECT AVG(TIMESTAMPDIFF(HOUR, created_at, handled_at)) as avg_hours " +
+                "FROM repair WHERE handled_at IS NOT NULL";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getDouble("avg_hours");
+            }
+            return 0.0;
+        }
+    }
+
+    /**
+     * 获取已评价的报修数
+     */
+    public int getRatedRepairsCount() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM repair WHERE status = 'rated'";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+            return 0;
+        }
+    }
+
+    /**
+     * 获取各评分(1-5)的报修数
+     * 返回包含5个元素的List，分别对应评分1-5的报修数
+     */
+    public List<Integer> getRepairsCountByRating() throws SQLException {
+        List<Integer> counts = new ArrayList<>(5);
+        // 初始化所有评分计数为0
+        for (int i = 0; i < 5; i++) {
+            counts.add(0);
+        }
+
+        String sql = "SELECT " +
+                "SUM(CASE WHEN rating = 1 THEN 1 ELSE 0 END) as rating1, " +
+                "SUM(CASE WHEN rating = 2 THEN 1 ELSE 0 END) as rating2, " +
+                "SUM(CASE WHEN rating = 3 THEN 1 ELSE 0 END) as rating3, " +
+                "SUM(CASE WHEN rating = 4 THEN 1 ELSE 0 END) as rating4, " +
+                "SUM(CASE WHEN rating = 5 THEN 1 ELSE 0 END) as rating5 " +
+                "FROM repair WHERE rating IS NOT NULL";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                counts.set(0, rs.getInt("rating1"));
+                counts.set(1, rs.getInt("rating2"));
+                counts.set(2, rs.getInt("rating3"));
+                counts.set(3, rs.getInt("rating4"));
+                counts.set(4, rs.getInt("rating5"));
+            }
+        }
+        return counts;
+    }
     // 将ResultSet映射为Repair对象
     private Repair mapResultSetToRepair(ResultSet rs) throws SQLException {
         Repair repair = new Repair();

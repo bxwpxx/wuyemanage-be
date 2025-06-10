@@ -135,7 +135,59 @@ public class UtilityBillsDAO {
         bill.setPaidDate(paidDate != null ? paidDate.toLocalDate() : null);
         return bill;
     }
+    // 在UtilityBillsDAO类中添加以下方法
 
+    // 计算总水费
+    public double getTotalWaterFee() throws SQLException {
+        String sql = "SELECT SUM(water_fee) AS total_water_fee FROM UtilityBills";
+        try (Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+            if (resultSet.next()) {
+                return resultSet.getDouble("total_water_fee");
+            }
+            return 0.0;
+        }
+    }
+
+    // 计算总电费
+    public double getTotalElectricityFee() throws SQLException {
+        String sql = "SELECT SUM(electricity_fee) AS total_electricity_fee FROM UtilityBills";
+        try (Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+            if (resultSet.next()) {
+                return resultSet.getDouble("total_electricity_fee");
+            }
+            return 0.0;
+        }
+    }
+
+    // 计算缴费率
+    public double getPaymentRate() throws SQLException {
+        String sql = "SELECT COUNT(*) AS total, SUM(CASE WHEN is_paid = TRUE THEN 1 ELSE 0 END) AS paid " +
+                "FROM UtilityBills";
+        try (Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+            if (resultSet.next()) {
+                int total = resultSet.getInt("total");
+                int paid = resultSet.getInt("paid");
+                return total == 0 ? 0.0 : (paid * 100.0 / total);
+            }
+            return 0.0;
+        }
+    }
+
+    // 计算平均缴费天数
+    public double getAveragePaymentDays() throws SQLException {
+        String sql = "SELECT AVG(DATEDIFF(paid_date, bill_month)) AS avg_days " +
+                "FROM UtilityBills WHERE is_paid = TRUE";
+        try (Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+            if (resultSet.next()) {
+                return resultSet.getDouble("avg_days");
+            }
+            return 0.0;
+        }
+    }
     public static void main(String[] args) {
         Connection connection = null;
         try {

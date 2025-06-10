@@ -116,6 +116,44 @@ public class OwnerDAO {
             statement.executeUpdate();
         }
     }
+    public int getTotalOwnersCount() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM Owner";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt(1);
+            }
+            return 0;
+        }
+    }
+
+    /**
+     * 获取1-5号楼每栋楼的业主数
+     * @return 包含5个元素的List，分别对应1-5号楼的业主数
+     * @throws SQLException
+     */
+    public List<Integer> getOwnersCountPerBuilding() throws SQLException {
+        List<Integer> counts = new ArrayList<>(5);
+        // 初始化所有楼栋计数为0
+        for (int i = 0; i < 5; i++) {
+            counts.add(0);
+        }
+
+        String sql = "SELECT BuildingNumber, COUNT(*) as count FROM Owner " +
+                "WHERE BuildingNumber BETWEEN 1 AND 5 " +
+                "GROUP BY BuildingNumber";
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                int buildingNumber = resultSet.getInt("BuildingNumber");
+                int count = resultSet.getInt("count");
+                // 楼号1对应索引0，楼号5对应索引4
+                counts.set(buildingNumber - 1, count);
+            }
+        }
+        return counts;
+    }
     public static void main(String[] args) {
 
         Connection connection = null;

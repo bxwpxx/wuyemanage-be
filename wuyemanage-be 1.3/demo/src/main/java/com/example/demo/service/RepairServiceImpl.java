@@ -15,6 +15,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 @Service
@@ -83,9 +84,11 @@ public class RepairServiceImpl implements RepairService {
         }
     }
     public static void main(String[] args) throws SQLException {
+        System.out.println(TimeZone.getDefault());
         Connection connection = null;
         RepairDAO repairDAO=null;
         OwnerDAO ownerDAO=null;
+        System.out.println(LocalDateTime.now());
         try {
 
             connection = DatabaseConnectionPool.getConnection();
@@ -103,6 +106,11 @@ public class RepairServiceImpl implements RepairService {
             System.out.println(repairItem);
             System.out.println(repairService.findById(repairItem.getId()));
         }
+        repairService.rateRepair(new RateRepairRequest(1,5));
+        System.out.println(repairService.findById(1));
+        repairService.handRepair(new HandRepairRequest(2,1));
+        System.out.println(repairService.findById(2));
+
 
         // 关闭连接
         if (connection != null) {
